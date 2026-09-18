@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "PaperSite.Application": {
+      "commandName": "Project",
+      "workingDirectory": "D:\\paperbackend\\PaperSite.API"
+    },
+    "Profile 1": {
+      "commandName": "Project",
+      "workingDirectory": "D:\\paperbackend\\PaperSite.API"
+    }
+  }
+}

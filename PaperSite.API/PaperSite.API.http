@@ -1,0 +1,51 @@
+@PaperSite.API_HostAddress = https://localhost:7063
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.sample.signature
+
+### Health
+GET {{PaperSite.API_HostAddress}}/health
+
+### Register Customer
+POST {{PaperSite.API_HostAddress}}/api/v1/Auth/Register
+Content-Type: application/json
+
+{
+  "firstName": "Ali",
+  "lastName": "Ahmadi",
+  "userName": "ali.ahmadi",
+  "email": "ali@example.com",
+  "phoneNumber": "09120000000",
+  "password": "Password123!"
+}
+
+### Login
+POST {{PaperSite.API_HostAddress}}/api/v1/Auth/Login
+Content-Type: application/json
+
+{
+  "email": "ali@example.com",
+  "password": "Password123!"
+}
+
+### Search Products
+GET {{PaperSite.API_HostAddress}}/api/v1/Product/Search?pageNumber=1&pageSize=10&sortBy=price&descending=false
+
+### Get Cart
+GET {{PaperSite.API_HostAddress}}/api/v1/Cart/GetCart
+Authorization: Bearer {{token}}
+
+### Create Order
+POST {{PaperSite.API_HostAddress}}/api/v1/Order/CreateOrder
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "shippingAddress": "Tehran, Iran",
+  "receiverFullName": "Ali Ahmadi",
+  "receiverPhoneNumber": "09120000000",
+  "items": [
+    {
+      "productId": "33333333-3333-3333-3333-333333333333",
+      "quantity": 1
+    }
+  ]
+}
