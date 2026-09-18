@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="PaperSite.API/PaperSite.API.csproj" />
+  <Project Path="PaperSite.Application/PaperSite.Application.csproj" />
+  <Project Path="PaperSite.Domain/PaperSite.Domain.csproj" />
+  <Project Path="PaperSite.Infrastructure/PaperSite.Infrastructure.csproj" />
+</Solution>
