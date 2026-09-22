@@ -15,6 +15,7 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Property(x => x.ShippingAddress).IsRequired().HasMaxLength(1000);
         builder.Property(x => x.ReceiverFullName).IsRequired().HasMaxLength(200);
         builder.Property(x => x.ReceiverPhoneNumber).IsRequired().HasMaxLength(20);
+        builder.Property(x => x.ShippingMethod).IsRequired().HasConversion<int>();
         builder.HasOne(x => x.User).WithMany(x => x.Orders).HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
         builder.HasMany(x => x.Items).WithOne(x => x.Order).HasForeignKey(x => x.OrderId).OnDelete(DeleteBehavior.Cascade);
     }

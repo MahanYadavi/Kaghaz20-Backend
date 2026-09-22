@@ -1,5 +1,6 @@
 using PaperSite.Application.DTOs.Common;
 using Microsoft.EntityFrameworkCore;
+using PaperSite.Application.Common;
 using PaperSite.Application.Common.Responses;
 using PaperSite.Application.DTOs.Order;
 using PaperSite.Application.Interfaces;
@@ -26,6 +27,11 @@ public class OrderService : IOrderService
 
     public async Task<BaseResponse<OrderDto>> CreateAsync(Guid userId, CreateOrderRequest request)
     {
+        if (!ShippingMethodParser.TryParse(request.ShippingMethod, out var shippingMethod))
+        {
+            return BaseResponse<OrderDto>.Failure("روش ارسال انتخاب‌شده معتبر نیست.");
+        }
+
         var groupedItems = request.Items
             .GroupBy(x => x.ProductId)
             .Select(x => new CreateOrderItemRequest { ProductId = x.Key, Quantity = x.Sum(i => i.Quantity) })
@@ -47,25 +53,25 @@ public class OrderService : IOrderService
                 return BaseResponse<OrderDto>.Failure($"موجودی محصول '{product.Name}' کافی نیست");
             }
         }
+
         var user = await _dbContext.Users
-    .Include(x => x.Addresses)
-    .FirstOrDefaultAsync(x => x.Id == userId);
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == userId);
 
         if (user == null)
         {
             return BaseResponse<OrderDto>.Failure("کاربر یافت نشد");
         }
 
-
-        var address = user.Addresses
-            .FirstOrDefault(x => x.Id == request.AddressId);
-
+        // آدرس باید وجود داشته باشد و متعلق به همین کاربر باشد؛ هرگز آدرس کاربر دیگر پذیرفته نمی‌شود.
+        var address = await _dbContext.UserAddresses
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == request.AddressId && x.UserId == userId);
 
         if (address == null)
         {
-            return BaseResponse<OrderDto>.Failure("آدرس انتخابی یافت نشد");
+            return BaseResponse<OrderDto>.Failure("آدرس انتخاب‌شده معتبر نیست.");
         }
-
 
         var order = new Order
         {
@@ -73,11 +79,15 @@ public class OrderService : IOrderService
             UserId = userId,
             Status = OrderStatus.Pending,
 
-            ShippingAddress = address.FullAddress,
+            ShippingMethod = shippingMethod,
+            AddressId = address.Id,
 
-            ReceiverFullName = $"{user.FirstName} {user.LastName}",
+            // Snapshot آدرس و گیرنده: بعد از ویرایش/حذف آدرس یا پروفایل، سفارش تغییر نمی‌کند.
+            ShippingAddress = BuildShippingAddressSnapshot(address),
 
-            ReceiverPhoneNumber = user.PhoneNumber
+            ReceiverFullName = BuildReceiverFullName(user),
+
+            ReceiverPhoneNumber = user.PhoneNumber.Trim()
         };
 
         await using var transaction = await _dbContext.Database.BeginTransactionAsync();
@@ -184,6 +194,7 @@ public class OrderService : IOrderService
         ShippingAddress = order.ShippingAddress,
         ReceiverFullName = order.ReceiverFullName,
         ReceiverPhoneNumber = order.ReceiverPhoneNumber,
+        ShippingMethod = ShippingMethodParser.ToApiValue(order.ShippingMethod),
         CreatedAt = order.CreatedAt,
         Items = order.Items.Select(x => new OrderItemDto
         {
@@ -195,4 +206,25 @@ public class OrderService : IOrderService
             TotalPrice = x.TotalPrice
         }).ToList()
     };
+
+    private static string BuildReceiverFullName(User user)
+    {
+        var fullName = $"{user.FirstName} {user.LastName}".Trim();
+        return string.IsNullOrWhiteSpace(fullName) ? user.PhoneNumber.Trim() : fullName;
+    }
+
+    /// <summary>
+    /// متن کامل آدرس در لحظه ثبت سفارش؛ اگر کاربر آدرس را ویرایش/حذف کند تغییر نمی‌کند.
+    /// </summary>
+    private static string BuildShippingAddressSnapshot(UserAddress address)
+    {
+        var parts = new List<string>(5);
+        if (!string.IsNullOrWhiteSpace(address.Title)) parts.Add($"عنوان: {address.Title.Trim()}");
+        if (!string.IsNullOrWhiteSpace(address.Province)) parts.Add($"استان: {address.Province.Trim()}");
+        if (!string.IsNullOrWhiteSpace(address.City)) parts.Add($"شهر: {address.City.Trim()}");
+        if (!string.IsNullOrWhiteSpace(address.FullAddress)) parts.Add(address.FullAddress.Trim());
+        if (!string.IsNullOrWhiteSpace(address.PostalCode)) parts.Add($"کد پستی: {address.PostalCode.Trim()}");
+
+        return string.Join(" - ", parts);
+    }
 }

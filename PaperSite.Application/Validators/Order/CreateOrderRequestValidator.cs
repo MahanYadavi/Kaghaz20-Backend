@@ -1,4 +1,5 @@
 using FluentValidation;
+using PaperSite.Application.Common;
 using PaperSite.Application.DTOs.Order;
 
 namespace PaperSite.Application.Validators.Order;
@@ -23,6 +24,13 @@ public class CreateOrderRequestValidator : AbstractValidator<CreateOrderRequest>
 
         RuleForEach(x => x.Items)
             .SetValidator(new CreateOrderItemRequestValidator());
+
+        RuleFor(x => x.ShippingMethod)
+            .Cascade(CascadeMode.Stop)
+            .NotEmpty()
+            .WithMessage("انتخاب روش ارسال الزامی است.")
+            .Must(x => ShippingMethodParser.TryParse(x, out _))
+            .WithMessage("روش ارسال انتخاب‌شده معتبر نیست.");
     }
 }
 

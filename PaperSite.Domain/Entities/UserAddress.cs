@@ -22,6 +22,16 @@ namespace PaperSite.Domain.Entities
 
         public bool IsDefault { get; set; }
 
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+        /// <summary>
+        /// حذف نرم؛ سفارش‌های قدیمی به اطلاعات آدرس خود وابسته نیستند (Snapshot)،
+        /// اما رفرنس <see cref="Order.AddressId"/> نباید بی‌معنا شود.
+        /// </summary>
+        public bool IsDeleted { get; set; }
+
         public User User { get; set; } = null!;
     }
 }

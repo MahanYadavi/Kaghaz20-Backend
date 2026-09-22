@@ -9,6 +9,7 @@ public class OrderDto
     public string ShippingAddress { get; set; } = string.Empty;
     public string ReceiverFullName { get; set; } = string.Empty;
     public string ReceiverPhoneNumber { get; set; } = string.Empty;
+    public string ShippingMethod { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
     public IReadOnlyList<OrderItemDto> Items { get; set; } = Array.Empty<OrderItemDto>();
 }
