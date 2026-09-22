@@ -26,14 +26,17 @@ jobs:
             echo "Restoring dependencies..."
             dotnet restore
 
-            echo "Installing EF Core tool if needed..."
-            export PATH="$PATH:/root/.dotnet/tools"
+            echo "Loading database connection string..."
+            export ConnectionStrings__DefaultConnection="$(grep '^ConnectionStrings__DefaultConnection=' /etc/papersite/backend.env | cut -d= -f2-)"
 
-            if ! command -v dotnet-ef >/dev/null 2>&1; then
-              dotnet tool install --global dotnet-ef
+            if [ -z "$ConnectionStrings__DefaultConnection" ]; then
+              echo "Database connection string is missing"
+              exit 1
             fi
 
-            echo "Checking pending migrations..."
+            export PATH="$PATH:/root/.dotnet/tools"
+
+            echo "Checking migrations..."
             dotnet ef migrations list \
               --project PaperSite.Infrastructure \
               --startup-project PaperSite.API
