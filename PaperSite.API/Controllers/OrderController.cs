@@ -24,7 +24,7 @@ public class OrderController : BaseController
     [HttpPost]
     [ProducesResponseType(typeof(BaseResponse<OrderDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(BaseResponse<OrderDto>), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> CreateOrder(CreateOrderRequest request)
+    public async Task<IActionResult> Create(CreateOrderRequest request)
     {
         var result = await _orderService.CreateAsync(CurrentUserId, request);
         return result.IsSuccess ? Ok(result) : BadRequest(result);
