@@ -26,11 +26,26 @@ jobs:
             echo "Restoring dependencies..."
             dotnet restore
 
-            echo "Loading database connection string..."
-            export ConnectionStrings__DefaultConnection="$(grep '^ConnectionStrings__DefaultConnection=' /etc/papersite/backend.env | cut -d= -f2-)"
+            echo "Loading application configuration..."
+
+            while IFS= read -r line || [ -n "$line" ]; do
+              case "$line" in
+                ''|\#*) continue ;;
+              esac
+
+              key="${line%%=*}"
+              value="${line#*=}"
+
+              export "$key=$value"
+            done < /etc/papersite/backend.env
 
             if [ -z "$ConnectionStrings__DefaultConnection" ]; then
               echo "Database connection string is missing"
+              exit 1
+            fi
+
+            if [ -z "$JwtSettings__Secret" ]; then
+              echo "JwtSettings__Secret is missing"
               exit 1
             fi
 
