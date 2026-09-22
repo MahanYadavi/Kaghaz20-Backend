@@ -14,5 +14,6 @@ public class User : BaseEntity
     public string PasswordHash { get; set; } = string.Empty;
     public Cart? Cart { get; set; }
     public ICollection<Order> Orders { get; set; } = new List<Order>();
-
+    public ICollection<UserAddress> Addresses { get; set; }
+    = new List<UserAddress>();
 }

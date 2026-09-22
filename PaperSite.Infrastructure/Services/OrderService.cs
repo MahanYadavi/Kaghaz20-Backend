@@ -47,15 +47,37 @@ public class OrderService : IOrderService
                 return BaseResponse<OrderDto>.Failure($"موجودی محصول '{product.Name}' کافی نیست");
             }
         }
+        var user = await _dbContext.Users
+    .Include(x => x.Addresses)
+    .FirstOrDefaultAsync(x => x.Id == userId);
+
+        if (user == null)
+        {
+            return BaseResponse<OrderDto>.Failure("کاربر یافت نشد");
+        }
+
+
+        var address = user.Addresses
+            .FirstOrDefault(x => x.Id == request.AddressId);
+
+
+        if (address == null)
+        {
+            return BaseResponse<OrderDto>.Failure("آدرس انتخابی یافت نشد");
+        }
+
 
         var order = new Order
         {
             Id = Guid.NewGuid(),
             UserId = userId,
             Status = OrderStatus.Pending,
-            ShippingAddress = request.ShippingAddress,
-            ReceiverFullName = request.ReceiverFullName,
-            ReceiverPhoneNumber = request.ReceiverPhoneNumber
+
+            ShippingAddress = address.FullAddress,
+
+            ReceiverFullName = $"{user.FirstName} {user.LastName}",
+
+            ReceiverPhoneNumber = user.PhoneNumber
         };
 
         await using var transaction = await _dbContext.Database.BeginTransactionAsync();
