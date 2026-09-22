@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="adress.md" />
+  </Folder>
   <Project Path="PaperSite.API/PaperSite.API.csproj" />
   <Project Path="PaperSite.Application/PaperSite.Application.csproj" />
   <Project Path="PaperSite.Domain/PaperSite.Domain.csproj" />
